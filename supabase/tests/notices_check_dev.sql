@@ -87,7 +87,7 @@ with r(番号, テスト, 期待, 実際) as (values
   (19,'⑤ 社員 見えないお知らせは確認不可(-1)',-1, pg_temp.w('aaaaaaaa-0000-0000-0000-000000000005',$q$insert into notice_acks(notice_id,person_id) values('77777777-0000-0000-0000-000000000005','aaaaaaaa-0000-0000-0000-000000000005')$q$)),
   (20,'⑥ 店長A 確認状況=自店3件見える',3, pg_temp.c('auth','aaaaaaaa-0000-0000-0000-000000000003',$q$select count(*) from notice_acks$q$)),
   (21,'⑥ 社員 確認状況=自分2件のみ',2, pg_temp.c('auth','aaaaaaaa-0000-0000-0000-000000000005',$q$select count(*) from notice_acks$q$)),
-  (22,'⑦ anon 設定0件',0, pg_temp.c('anon',null,$q$select count(*) from app_settings$q$)),
+  (22,'⑦ anon も設定(会社名)は読める',1, pg_temp.c('anon',null,$q$select count(*) from app_settings$q$)),
   (23,'⑦ 店長A 設定が読める(1件)',1, pg_temp.c('auth','aaaaaaaa-0000-0000-0000-000000000003',$q$select count(*) from app_settings$q$)),
   (24,'② 設定の2行目は作れない(-1)',-1, pg_temp.w('aaaaaaaa-0000-0000-0000-000000000001',$q$insert into app_settings(id,company_display_name) values(2,'x')$q$)),
   (25,'③ MASでもお知らせ削除不可(0行)',0, pg_temp.w('aaaaaaaa-0000-0000-0000-000000000001',$q$delete from notices where id='77777777-0000-0000-0000-000000000001'$q$)),
