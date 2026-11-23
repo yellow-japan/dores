@@ -46,6 +46,26 @@ npm run dev
 
 表・RLSの変更は**必ずマイグレーション（`supabase/migrations/*.sql`）**で行う。Supabase管理画面で直接いじらない（変更履歴をGitに残すため）。本物の個人情報・店舗データは入れない（テストは明らかに架空のデータで行う）。
 
+## 背景イラストの差し替え方（設定から変更）
+
+背景はコードに埋め込まず、設定（`app_settings`）から読みます。差し替え手順：
+
+1. Supabaseダッシュボード → **Storage** → バケット **`branding`** を開く → 新しい画像をアップロード（例 `bg-2.jpg`）。
+2. SQL Editor で、その画像のパスを設定に入れる：
+   ```sql
+   update app_settings set background_image_path = 'bg-2.jpg' where id = 1;
+   ```
+3. 画面を再読み込みすると、新しい背景になります（ログインした人だけが見られる署名付きURLで表示）。
+4. 同梱の初期画像に戻すには `background_image_path` を空にする：
+   ```sql
+   update app_settings set background_image_path = null where id = 1;
+   ```
+
+会社名を変えるときも SQL Editor で：
+```sql
+update app_settings set company_display_name = '新しい会社名' where id = 1;
+```
+
 ## コミット／Push
 
 コミットとPushは **GitHub Desktop** で行う（このMacはgit CLIの認証が未設定のため）。
