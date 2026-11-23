@@ -97,7 +97,9 @@ with r(番号, テスト, 期待, 実際) as (values
   (29,'④ anon は my_area_ids を呼べない(-1)',-1, pg_temp.tc('anon',null,$q$select count(*) from my_area_ids()$q$)),
   (30,'④ anon は current_rank_id を呼べない(-1)',-1, pg_temp.tc('anon',null,$q$select current_rank_id()$q$)),
   (31,'④ 店長A は notice_is_target を呼べる(0)',0, pg_temp.tc('auth','aaaaaaaa-0000-0000-0000-000000000003',$q$select notice_is_target('77777777-0000-0000-0000-000000000001')$q$)),
-  (32,'② acked_at は指定しても必ずnow()(1)',1, pg_temp.ack_now('aaaaaaaa-0000-0000-0000-000000000005','77777777-0000-0000-0000-000000000002'))
+  (32,'② acked_at は指定しても必ずnow()(1)',1, pg_temp.ack_now('aaaaaaaa-0000-0000-0000-000000000005','77777777-0000-0000-0000-000000000002')),
+  (33,'⑥ アルバイト1 は対象者展開を呼べない(0件)',0, pg_temp.c('auth','aaaaaaaa-0000-0000-0000-000000000006',$q$select count(*) from notice_target_person_ids('77777777-0000-0000-0000-000000000001')$q$)),
+  (34,'⑥ 店長A(管理職)は対象者展開を取得(全員8)',8, pg_temp.c('auth','aaaaaaaa-0000-0000-0000-000000000003',$q$select count(*) from notice_target_person_ids('77777777-0000-0000-0000-000000000001')$q$))
 )
 select
   (select count(*) from r)                   as 件数,
