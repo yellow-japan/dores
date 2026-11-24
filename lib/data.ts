@@ -1,9 +1,10 @@
+import { cache } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 export type Me = { id: string; display_name: string } | null;
 
-// ログイン中の本人（people 行）
-export async function getMe(supabase: SupabaseClient): Promise<Me> {
+// ログイン中の本人（people 行）。cache() で1リクエスト内の重複取得をまとめる。
+export const getMe = cache(async (supabase: SupabaseClient): Promise<Me> => {
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -14,7 +15,7 @@ export async function getMe(supabase: SupabaseClient): Promise<Me> {
     .eq("auth_user_id", user.id)
     .maybeSingle();
   return data ?? null;
-}
+});
 
 // 会社名と背景画像URL（設定が空なら同梱の初期画像）
 export async function getBranding(
@@ -37,11 +38,11 @@ export async function getBranding(
   return { companyName, backgroundUrl };
 }
 
-// 本部管理者(MAS)か
-export async function getIsMas(supabase: SupabaseClient): Promise<boolean> {
+// 本部管理者(MAS)か。cache() で重複呼び出しをまとめる。
+export const getIsMas = cache(async (supabase: SupabaseClient): Promise<boolean> => {
   const { data } = await supabase.rpc("is_mas");
   return data === true;
-}
+});
 
 // お知らせの確認状況を見られる人か（MAS / エリア長 / 店長）
 export async function canManageNotices(
