@@ -4,13 +4,14 @@ import NoticeList, { type NoticeItem } from "@/components/notices/NoticeList";
 
 export default async function NoticesPage() {
   const supabase = await createClient();
-  const me = await getMe(supabase);
-  const isMas = await getIsMas(supabase);
 
-  // RLS: MAS は下書き含め全部 / 他は公開中かつ自分が対象
-  const { data: noticesData } = await supabase
-    .from("notices")
-    .select("id, title, is_important, published_at, status");
+  // 本人・MAS判定・お知らせ一覧を並行取得（RLS: MASは下書き含め全部／他は公開中かつ自分が対象）
+  const [me, isMas, noticesRes] = await Promise.all([
+    getMe(supabase),
+    getIsMas(supabase),
+    supabase.from("notices").select("id, title, is_important, published_at, status"),
+  ]);
+  const noticesData = noticesRes.data;
 
   const { data: acksData } = me
     ? await supabase.from("notice_acks").select("notice_id").eq("person_id", me.id)
