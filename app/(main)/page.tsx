@@ -21,18 +21,15 @@ export default async function HomePage() {
   }).format(now);
   const greetingStr = greeting(now.getHours());
 
-  // 自分に見えている公開中のお知らせ（RLSで自動的に絞られる）
-  const { data: noticesData } = await supabase
-    .from("notices")
-    .select("id, title, is_important, published_at")
-    .eq("status", "published");
-  const notices: NoticeLite[] = noticesData ?? [];
-
-  // 自分の確認済み
-  const { data: acksData } = me
-    ? await supabase.from("notice_acks").select("notice_id").eq("person_id", me.id)
-    : { data: [] as { notice_id: string }[] };
-  const acked = new Set((acksData ?? []).map((a) => a.notice_id));
+  // 公開中のお知らせ（RLSで絞られる）と自分の確認済みを並行取得
+  const [noticesRes, acksRes] = await Promise.all([
+    supabase.from("notices").select("id, title, is_important, published_at").eq("status", "published"),
+    me
+      ? supabase.from("notice_acks").select("notice_id").eq("person_id", me.id)
+      : Promise.resolve({ data: [] as { notice_id: string }[] }),
+  ]);
+  const notices: NoticeLite[] = noticesRes.data ?? [];
+  const acked = new Set((acksRes.data ?? []).map((a) => a.notice_id));
 
   const unreadCount = notices.filter((n) => !acked.has(n.id)).length;
 
