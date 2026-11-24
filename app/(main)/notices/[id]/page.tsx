@@ -18,25 +18,32 @@ export default async function NoticeDetailPage({
   const { id } = await params;
   const supabase = await createClient();
 
-  const { data: notice } = await supabase
-    .from("notices")
-    .select("id, title, body, is_important, status, published_at")
-    .eq("id", id)
-    .maybeSingle();
+  // お知らせ本体・本人・MAS判定を並行取得
+  const [noticeRes, me, isMas] = await Promise.all([
+    supabase
+      .from("notices")
+      .select("id, title, body, is_important, status, published_at")
+      .eq("id", id)
+      .maybeSingle(),
+    getMe(supabase),
+    getIsMas(supabase),
+  ]);
+  const notice = noticeRes.data;
   if (!notice) notFound();
 
-  const me = await getMe(supabase);
-  const isMas = await getIsMas(supabase);
-  const canManage = isMas || (me ? await canManageNotices(supabase, me.id) : false);
-
-  const { data: myAck } = me
-    ? await supabase
-        .from("notice_acks")
-        .select("acked_at")
-        .eq("notice_id", id)
-        .eq("person_id", me.id)
-        .maybeSingle()
-    : { data: null };
+  // 管理権限の判定と自分の確認記録を並行取得
+  const [canManage, myAckRes] = await Promise.all([
+    isMas ? Promise.resolve(true) : me ? canManageNotices(supabase, me.id) : Promise.resolve(false),
+    me
+      ? supabase
+          .from("notice_acks")
+          .select("acked_at")
+          .eq("notice_id", id)
+          .eq("person_id", me.id)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
+  ]);
+  const myAck = myAckRes.data;
 
   return (
     <div className="space-y-4 pt-2">
