@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
@@ -5,8 +6,9 @@ import { cookies } from "next/headers";
  * サーバー（サーバーコンポーネント／Route Handler）用の Supabase クライアント。
  * 環境変数から接続情報を読み、Cookie でログインセッションを引き継ぐ。
  * ここでも匿名キーを使う。service_role key を使う管理操作は別途サーバー専用で実装する。
+ * React cache() で「1リクエスト内は同じクライアントを使い回す」→無駄な往復を減らす。
  */
-export async function createClient() {
+export const createClient = cache(async () => {
   const cookieStore = await cookies();
 
   return createServerClient(
@@ -29,4 +31,4 @@ export async function createClient() {
       },
     },
   );
-}
+});
