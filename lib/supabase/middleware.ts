@@ -38,10 +38,22 @@ export async function updateSession(request: NextRequest) {
     url.pathname = "/login";
     return NextResponse.redirect(url);
   }
+
+  // URLの分け方（追加7）：
+  //   dores-home.vercel.app（ドメイン前のDO'reS運営）→ ルートは運営ホーム /platform
+  //   それ以外（yellow-dores.vercel.app など）→ ルートは会社アプリ（従来どおり）
+  const host = request.headers.get("host") ?? "";
+  const isPlatformHost = host.startsWith("dores-home");
+
   if (user && path === "/login") {
     const url = request.nextUrl.clone();
-    url.pathname = "/";
+    url.pathname = isPlatformHost ? "/platform" : "/";
     return NextResponse.redirect(url);
+  }
+  if (isPlatformHost && path === "/") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/platform";
+    return NextResponse.rewrite(url);
   }
 
   return response;
