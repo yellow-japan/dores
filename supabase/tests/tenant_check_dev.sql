@@ -73,7 +73,7 @@ with r(番号, テスト, 期待, 実際) as (values
   (17,'B-アルバイト 自社の公開お知らせ1件',1, pg_temp.c('auth','0000bbbb-0000-0000-0000-000000000003',$q$select count(*) from notices$q$)),
   (18,'B-アルバイト Aの全社お知らせは見えない',0, pg_temp.c('auth','0000bbbb-0000-0000-0000-000000000003',$q$select count(*) from notices where id='77777777-0000-0000-0000-000000000001'$q$)),
   -- tenants は自分の会社の1行だけ。anon は0
-  (19,'A-MAS tenants 自社1行のみ',1, pg_temp.c('auth','aaaaaaaa-0000-0000-0000-000000000001',$q$select count(*) from tenants$q$)),
+  (19,'A-社員(運営でない) tenants 自社1行のみ',1, pg_temp.c('auth','aaaaaaaa-0000-0000-0000-000000000005',$q$select count(*) from tenants$q$)),
   (20,'B-MAS tenants 自社1行のみ',1, pg_temp.c('auth','0000bbbb-0000-0000-0000-000000000001',$q$select count(*) from tenants$q$)),
   (21,'anon tenants 0件',0, pg_temp.c('anon',null,$q$select count(*) from tenants$q$)),
   (22,'anon 店舗0件',0, pg_temp.c('anon',null,$q$select count(*) from stores$q$)),
