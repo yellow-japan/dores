@@ -42,3 +42,15 @@ export const IconGear = (p: P) => (
 export const IconLogout = (p: P) => (
   <svg {...base} className={p.className}><path d="M15 4h3a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-3" /><path d="M10 12H3M6 8l-3 4 3 4" /></svg>
 );
+export const IconBuildings = (p: P) => (
+  <svg {...base} className={p.className}><path d="M3 21h18" /><path d="M5 21V7l6-3v17" /><path d="M11 21V9l8 3v9" /><path d="M8 9v0M8 13v0M8 17v0M15 14v0M15 18v0" /></svg>
+);
+export const IconRocket = (p: P) => (
+  <svg {...base} className={p.className}><path d="M5 15c-1.5 1.5-2 5-2 5s3.5-.5 5-2" /><path d="M9 11a9 9 0 0 1 9-9c.5 2.5-.5 6-4 9-2 1.7-4 2.5-5 3l-2-2c.5-1 1.3-3 2-4Z" /><circle cx="15" cy="8" r="1.3" /></svg>
+);
+export const IconHistory = (p: P) => (
+  <svg {...base} className={p.className}><path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1" /><path d="M5 3v4h4" /><path d="M12 8v4l3 2" /></svg>
+);
+export const IconDoor = (p: P) => (
+  <svg {...base} className={p.className}><path d="M14 3H6v18h8" /><path d="M14 3l4 2v14l-4 2V3Z" /><path d="M11 12v0" /></svg>
+);
