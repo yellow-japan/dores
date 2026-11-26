@@ -1,8 +1,21 @@
+import { headers } from "next/headers";
 import LoginForm from "./LoginForm";
+import PlatformLogin from "@/components/platform/PlatformLogin";
 import { createClient } from "@/lib/supabase/server";
+import { hostMode } from "@/lib/host";
 
-// ログインは認証前なので背景は同梱の初期画像。会社名は設定(app_settings)から（anonで読み取り可）。
+// URL（ホスト名）で画面を分ける（追加7）：
+//   dores-home*  → DO'reS運営専用のログイン（黒）
+//   それ以外     → その会社の背景・会社名のログイン（従来どおり）
 export default async function LoginPage() {
+  const h = await headers();
+  const mode = hostMode(h.get("host"));
+
+  if (mode.kind === "platform") {
+    return <PlatformLogin />;
+  }
+
+  // 会社用（従来どおり）。会社名は設定(app_settings)から（anonで読み取り可）。
   const supabase = await createClient();
   const { data } = await supabase
     .from("app_settings")
