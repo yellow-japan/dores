@@ -15,11 +15,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
   // DO'reS運営として「所属以外の会社に入っている」間だけ、上に帯を出す（追加2）
   let ops: { companyName: string; sessionId: string } | null = null;
   if (me) {
-    const { data: home } = await supabase
-      .from("people")
-      .select("tenant_id")
-      .eq("id", me.id)
-      .maybeSingle();
+    const { data: homeTenantId } = await supabase.rpc("current_tenant_id");
     const { data: sess } = await supabase
       .from("company_access_sessions")
       .select("id, target_tenant_id, tenants(display_name)")
@@ -30,7 +26,7 @@ export default async function MainLayout({ children }: { children: React.ReactNo
     const s = sess as unknown as
       | { id: string; target_tenant_id: string; tenants: { display_name: string } | null }
       | null;
-    if (s && home && s.target_tenant_id !== home.tenant_id) {
+    if (s && homeTenantId && s.target_tenant_id !== homeTenantId) {
       ops = { companyName: s.tenants?.display_name ?? "会社", sessionId: s.id };
     }
   }
