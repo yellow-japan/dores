@@ -1,28 +1,22 @@
 import { headers } from "next/headers";
 import LoginForm from "./LoginForm";
 import PlatformLogin from "@/components/platform/PlatformLogin";
+import UnknownHost from "@/components/UnknownHost";
 import { createClient } from "@/lib/supabase/server";
-import { hostMode } from "@/lib/host";
+import { resolveHost } from "@/lib/host";
 
-// URL（ホスト名）で画面を分ける（追加7）：
-//   dores-home*  → DO'reS運営専用のログイン（黒）
-//   それ以外     → その会社の背景・会社名のログイン（従来どおり）
+// URL（ホスト名）で画面を分ける（追加7・データ化）：
+//   dores-home → DO'reS運営ログイン（黒）／会社URL → その会社のログイン／未登録 → 入口なし
 export default async function LoginPage() {
   const h = await headers();
-  const mode = hostMode(h.get("host"));
-
-  if (mode.kind === "platform") {
-    return <PlatformLogin />;
-  }
-
-  // 会社用（従来どおり）。会社名は設定(app_settings)から（anonで読み取り可）。
   const supabase = await createClient();
-  const { data } = await supabase
-    .from("app_settings")
-    .select("company_display_name")
-    .eq("id", 1)
-    .maybeSingle();
-  const companyName = data?.company_display_name ?? "yellow.inc";
+  const info = await resolveHost(supabase, h.get("host"));
+
+  if (info.kind === "platform") return <PlatformLogin />;
+  if (info.kind === "unknown") return <UnknownHost />;
+
+  // 会社用（背景・会社名）。会社名は対応データ(tenant_hostnames→tenants)から。
+  const companyName = info.displayName;
 
   return (
     <div className="relative grid min-h-dvh place-items-center px-4">
