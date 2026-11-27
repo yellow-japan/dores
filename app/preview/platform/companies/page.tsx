@@ -8,7 +8,11 @@ export default function Preview() {
   ];
   return (
     <PlatformShell userName="小林" dateStr="11月26日(水)" active="companies">
-      <CompanyList companies={companies} homeTenantId="t1" />
+      <CompanyList
+        companies={companies}
+        homeTenantId="t1"
+        homeHostByTenant={{ t1: "https://yellow-dores.vercel.app" }}
+      />
     </PlatformShell>
   );
 }
