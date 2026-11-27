@@ -8,18 +8,14 @@ const statusLabel: Record<string, { text: string; cls: string }> = {
   suspended: { text: "停止", cls: "text-white/50 bg-white/5 border-white/15" },
 };
 
-// 会社ごとのアプリURL（追加7。ドメイン前は Vercel のURL）
-function companyUrl(slug: string): string {
-  if (slug === "yellow") return "https://yellow-dores.vercel.app";
-  return "/"; // 他社はドメイン取得後に割り当て
-}
-
 export default function CompanyList({
   companies,
   homeTenantId,
+  homeHostByTenant,
 }: {
   companies: TenantRow[];
   homeTenantId?: string | null;
+  homeHostByTenant?: Record<string, string>; // 会社ID→URL（追加7・データ）。「開く」で使う
 }) {
   return (
     <div>
@@ -50,17 +46,13 @@ export default function CompanyList({
               </span>
               {c.id === homeTenantId ? (
                 <Link
-                  href={companyUrl(c.slug)}
+                  href={homeHostByTenant?.[c.id] ?? "/"}
                   className="shrink-0 rounded-xl border border-white/15 bg-white/10 px-4 py-2 text-sm font-bold text-white transition hover:bg-white/20"
                 >
                   開く
                 </Link>
               ) : (
-                <EnterCompany
-                  tenantId={c.id}
-                  tenantName={c.display_name}
-                  homeUrl={companyUrl(c.slug)}
-                />
+                <EnterCompany tenantId={c.id} tenantName={c.display_name} />
               )}
             </li>
           );
