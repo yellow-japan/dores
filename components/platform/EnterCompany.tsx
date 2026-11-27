@@ -7,11 +7,9 @@ import { createClient } from "@/lib/supabase/client";
 export default function EnterCompany({
   tenantId,
   tenantName,
-  homeUrl,
 }: {
   tenantId: string;
   tenantName: string;
-  homeUrl: string; // その会社のアプリURL（ドメイン前はVercelのURL）
 }) {
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState("");
@@ -51,8 +49,10 @@ export default function EnterCompany({
         setBusy(false);
         return;
       }
-      // その会社のホームへ（ドメイン前はVercelのURL）
-      window.location.href = homeUrl;
+      // 「入っている」印をブラウザに残し、同じURLの会社アプリ(ルート)へ。
+      //   → 中身は今いる会社(acting=入った会社)で表示され、上に運営の帯が出る。
+      document.cookie = "dores_enter=1; path=/; max-age=28800; samesite=lax";
+      window.location.href = "/";
     } catch {
       setErr("通信に失敗しました。");
       setBusy(false);
