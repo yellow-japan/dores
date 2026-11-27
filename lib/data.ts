@@ -3,36 +3,39 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 export type Me = { id: string; display_name: string } | null;
 
-// ログイン中の本人（people 行）。cache() で1リクエスト内の重複取得をまとめる。
+// ログイン中の本人（people 行）。my_person() で取得（運営が他社に入っている間でも自分を取れる）。
 export const getMe = cache(async (supabase: SupabaseClient): Promise<Me> => {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return null;
-  const { data } = await supabase
-    .from("people")
-    .select("id, display_name")
-    .eq("auth_user_id", user.id)
-    .maybeSingle();
-  return data ?? null;
+  const { data } = await supabase.rpc("my_person");
+  const row = Array.isArray(data) ? data[0] : null;
+  return row ? { id: row.id, display_name: row.display_name } : null;
 });
 
-// 会社名と背景画像URL（設定が空なら同梱の初期画像）
+// 会社名と背景画像URL：いま「見ている会社（acting）」のもの。
+//   運営が他社に入っていればその会社名・背景、ふだんは自分の会社。
 export async function getBranding(
   supabase: SupabaseClient,
 ): Promise<{ companyName: string; backgroundUrl: string }> {
-  const { data } = await supabase
-    .from("app_settings")
-    .select("company_display_name, background_image_path")
-    .eq("id", 1)
-    .maybeSingle();
+  const { data: actingId } = await supabase.rpc("current_acting_tenant_id");
 
-  const companyName = data?.company_display_name ?? "yellow.inc";
+  let companyName = "yellow.inc";
+  let bgPath: string | null = null;
+  if (actingId) {
+    const { data } = await supabase
+      .from("tenants")
+      .select("display_name, background_image_path")
+      .eq("id", actingId)
+      .maybeSingle();
+    if (data) {
+      companyName = data.display_name;
+      bgPath = data.background_image_path;
+    }
+  }
+
   let backgroundUrl = "/default-bg.jpg";
-  if (data?.background_image_path) {
+  if (bgPath) {
     const { data: signed } = await supabase.storage
       .from("branding")
-      .createSignedUrl(data.background_image_path, 3600);
+      .createSignedUrl(bgPath, 3600);
     if (signed?.signedUrl) backgroundUrl = signed.signedUrl;
   }
   return { companyName, backgroundUrl };
