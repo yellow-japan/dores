@@ -21,6 +21,8 @@ export default function OpsBanner({
       .from("company_access_sessions")
       .update({ exited_at: new Date().toISOString() })
       .eq("id", sessionId);
+    // 「入っている」印を消して運営ホームへ
+    document.cookie = "dores_enter=; path=/; max-age=0; samesite=lax";
     window.location.href = platformUrl;
   }
   return (
