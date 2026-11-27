@@ -1,13 +1,37 @@
-// URL（ホスト名）→ どの画面かの対応（追加7）。
-//   dores-home*        → DO'reS運営（黒い画面）
-//   それ以外           → 会社アプリ（今は yellow）。将来はサブドメインから会社slugを決める。
-export type HostMode =
-  | { kind: "platform" }
-  | { kind: "tenant"; slug: string };
+import type { SupabaseClient } from "@supabase/supabase-js";
 
-export function hostMode(host: string | null | undefined): HostMode {
+// URL（ホスト名）→ どの会社か/運営かを「データ」から解決する（追加7）。
+//   対応は tenant_hostnames テーブル（host_branding 関数で1件だけ取得）。
+//   登録のないホストは unknown（入口を出さない）。
+export type HostInfo =
+  | { kind: "platform" }
+  | {
+      kind: "tenant";
+      tenantId: string;
+      slug: string;
+      displayName: string;
+      backgroundPath: string | null;
+    }
+  | { kind: "unknown" };
+
+export async function resolveHost(
+  supabase: SupabaseClient,
+  host: string | null | undefined,
+): Promise<HostInfo> {
   const h = (host ?? "").toLowerCase();
-  if (h.startsWith("dores-home")) return { kind: "platform" };
-  // yellow-dores.vercel.app / dores-ruby.vercel.app / localhost など → 会社(yellow)
-  return { kind: "tenant", slug: "yellow" };
+  try {
+    const { data } = await supabase.rpc("host_branding", { p_host: h });
+    const row = Array.isArray(data) ? data[0] : null;
+    if (!row) return { kind: "unknown" };
+    if (row.kind === "platform") return { kind: "platform" };
+    return {
+      kind: "tenant",
+      tenantId: row.tenant_id,
+      slug: row.slug,
+      displayName: row.display_name,
+      backgroundPath: row.background_image_path,
+    };
+  } catch {
+    return { kind: "unknown" };
+  }
 }
