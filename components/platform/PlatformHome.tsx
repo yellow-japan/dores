@@ -21,12 +21,14 @@ export default function PlatformHome({ userName, stats }: Props) {
         width={360}
         height={160}
         priority
-        className="h-auto w-[min(70vw,340px)] select-none"
+        className="dores-logo-in h-auto w-[min(70vw,340px)] select-none"
       />
-      <p className="mt-6 text-lg text-white/80">
-        おかえりなさい、<span className="font-bold text-white">{userName}</span>さん
+      <p className="dores-tagline mt-7 text-[11px] font-light uppercase tracking-[0.3em] text-white/55">
+        The future starts with action.
       </p>
-      <p className="mt-1 text-xs tracking-[0.25em] text-white/35">動けば、変わる。</p>
+      <p className="mt-6 text-sm text-white/70">
+        おかえりなさい、<span className="font-medium text-white">{userName}</span>さん
+      </p>
 
       <div className="mt-10 grid w-full max-w-md grid-cols-3 gap-3">
         {nums.map((n) => (
