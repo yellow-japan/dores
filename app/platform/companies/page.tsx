@@ -14,9 +14,23 @@ export default async function CompaniesPage() {
     const { data } = await supabase.from("people").select("tenant_id").eq("id", me.id).maybeSingle();
     homeTenantId = data?.tenant_id ?? null;
   }
+  // 会社ID→URL（追加7・データ）。vercel.app のホストを使う。
+  const { data: hosts } = await supabase
+    .from("tenant_hostnames")
+    .select("hostname, tenant_id, kind");
+  const homeHostByTenant: Record<string, string> = {};
+  for (const row of hosts ?? []) {
+    if (row.kind === "tenant" && row.tenant_id && row.hostname.endsWith(".vercel.app")) {
+      if (!homeHostByTenant[row.tenant_id]) homeHostByTenant[row.tenant_id] = `https://${row.hostname}`;
+    }
+  }
   return (
     <PlatformShell userName={me?.display_name ?? "運営"} dateStr={todayStr()} active="companies">
-      <CompanyList companies={companies} homeTenantId={homeTenantId} />
+      <CompanyList
+        companies={companies}
+        homeTenantId={homeTenantId}
+        homeHostByTenant={homeHostByTenant}
+      />
     </PlatformShell>
   );
 }
