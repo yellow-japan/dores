@@ -66,6 +66,58 @@ npm run dev
 update app_settings set company_display_name = '新しい会社名' where id = 1;
 ```
 
+## URLの分け方（DO'reS運営 と 会社）
+
+1つのVercelプロジェクトに**複数のURL（ドメイン）**を付けて動かす（③）。どのURLがどれかは、
+コードに書かず**データ（`tenant_hostnames` テーブル）**で持つ（追加7）。
+
+- `dores-home.vercel.app` → **DO'reS運営**（黒い画面）
+- `yellow-dores.vercel.app` → **yellow.inc の会社アプリ**（元の見た目）
+- `dores-ruby.vercel.app` → yellow.inc（従来URL・互換）
+- **登録のないURLは入口を出さない**（「このURLは登録されていません」）。
+
+### Vercel（1プロジェクトに2つの名前）
+Vercel → 対象プロジェクト → **Settings → Domains → Add** で、`dores-home.vercel.app` と
+`yellow-dores.vercel.app` を追加する（環境変数は既存プロジェクトのものをそのまま使う）。
+ホスト名で画面が切り替わる（`lib/supabase/middleware.ts` ＋ `host_branding`）。
+
+## DO'reS運営スタッフの登録（最初の1人＝代表）
+
+運営スタッフ名簿 `platform_admins` への**最初の登録は、SQL Editor で行う**（RLSの外。以後の追加は運営画面／既存運営が行える）。
+
+1. 代表の `people.id` を調べる（例：メールから）：
+   ```sql
+   select p.id, p.display_name
+   from people p join auth.users u on u.id = p.auth_user_id
+   where u.email = 'yellow.koba@gmail.com';
+   ```
+2. その id を運営スタッフに登録：
+   ```sql
+   insert into platform_admins (person_id, note)
+   values ('<上で調べたpeople.id>', '代表＝DO''reS運営')
+   on conflict (person_id) do nothing;
+   ```
+3. これで `dores-home` にログインすると、DO'reS運営ホームが開く。
+
+> dores-dev では `supabase/seed_platform.sql` で代表（`aaaaaaaa-…-0001`）を登録済み。
+
+## 新しいURL（ドメイン）を足すとき
+
+独自ドメインを取ったとき、または新しい会社URLを足すとき：
+
+1. **Vercel** → Settings → Domains → そのドメインを追加（独自ドメインはDNS設定の案内に従う）。
+2. **対応データに登録**（SQL Editor）。運営(platform)か、どの会社(tenant)かを入れる：
+   ```sql
+   -- 例：独自ドメインを yellow.inc に割り当て
+   insert into tenant_hostnames (hostname, kind, tenant_id)
+   values ('app.yellow-inc.jp', 'tenant', '0000ffff-0000-0000-0000-000000000001');
+
+   -- 例：運営の独自ドメイン
+   insert into tenant_hostnames (hostname, kind, tenant_id)
+   values ('dores.co.jp', 'platform', null);
+   ```
+3. 登録すると、そのURLで正しい画面（会社／運営）が出る。未登録のままだと入口は出ない。
+
 ## コミット／Push
 
 コミットとPushは **GitHub Desktop** で行う（このMacはgit CLIの認証が未設定のため）。
